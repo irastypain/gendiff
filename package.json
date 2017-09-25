@@ -1,6 +1,6 @@
 {
   "name": "gendiff-irastypain",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "This package is implementation of second project at Hexlet",
   "main": "index.js",
   "scripts": {
