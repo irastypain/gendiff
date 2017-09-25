@@ -1,8 +1,8 @@
 {
   "name": "gendiff-irastypain",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "description": "This package is implementation of second project at Hexlet",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "babel-node": "babel-node",
@@ -37,5 +37,8 @@
   },
   "bin": {
     "gendiff": "dist/bin/gendiff.js"
+  },
+  "dependencies": {
+    "commander": "^2.11.0"
   }
 }
