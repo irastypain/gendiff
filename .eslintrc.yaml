@@ -1,12 +1,12 @@
 ---
 
-  env:
-    node: true
+env:
+  node: true
 
-  parser: babel-eslint
+parser: babel-eslint
 
-  extends:
-    - airbnb-base
+extends:
+  - airbnb-base
 
-  rules:
-    no-console: off
+rules:
+  no-console: off
