@@ -1,7 +1,7 @@
 import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
-import yaml from 'js-yaml';
+import parser from './parsers';
 
 const formatDiff = (diff) => {
   const signs = {
@@ -28,19 +28,11 @@ const getTypeFile = (filepath) => {
   return ext;
 };
 
-const getParser = type => {
-  const parsers = {
-    json: (file) => JSON.parse(file),
-    yaml: (file) => yaml.load(file),
-  };
-  return parsers[type];
-};
-
 const getContent = (pathToFile) => {
   const encoding = 'utf-8';
   const file = fs.readFileSync(pathToFile, encoding);
-  const parser = getParser(getTypeFile(pathToFile));
-  return parser(file);
+  const format = getTypeFile(pathToFile);
+  return parser(format, file);
 };
 
 const getDiff = (fstContent, sndContent) => {
