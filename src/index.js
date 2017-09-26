@@ -2,7 +2,13 @@ import fs from 'fs';
 import _ from 'lodash';
 
 const formatDiff = (diff) => {
-  const signs = { equal: ' ', added: '+', deleted: '-', changedFrom: '-', changedTo: '+' };
+  const signs = {
+    equal: ' ',
+    added: '+',
+    deleted: '-',
+    changedFrom: '-',
+    changedTo: '+',
+  };
   const lines = diff.map(item => `  ${signs[item.action]} ${item.property}: ${item.value}`);
   return `{\n${lines.join('\n')}\n}`;
 };
@@ -23,7 +29,7 @@ export default (pathToFstFile, pathToSndFile) => {
   const fstKeys = Object.keys(fstContent);
   const sndKeys = Object.keys(sndContent);
 
-  const diff = _.union(fstKeys, sndKeys).map(key => {
+  const diff = _.union(fstKeys, sndKeys).map((key) => {
     if (_.isEqual(fstContent[key], sndContent[key])) {
       return buildDiffItem('equal', key, fstContent[key]);
     } else if (!fstKeys.includes(key)) {
@@ -31,7 +37,7 @@ export default (pathToFstFile, pathToSndFile) => {
     } else if (!sndKeys.includes(key)) {
       return buildDiffItem('deleted', key, fstContent[key]);
     }
-    return [ buildDiffItem('changedTo', key, sndContent[key]), buildDiffItem('changedFrom', key, fstContent[key]) ];
+    return [buildDiffItem('changedTo', key, sndContent[key]), buildDiffItem('changedFrom', key, fstContent[key])];
   });
 
   return formatDiff(_.flatten(diff));
