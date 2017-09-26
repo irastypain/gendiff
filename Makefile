@@ -13,4 +13,7 @@ lint:
 test:
 	npm test
 
+testwatch:
+	npm run testwatch
+
 .PHONY: test
