@@ -1,5 +1,7 @@
 import fs from 'fs';
 import _ from 'lodash';
+import path from 'path';
+import yaml from 'js-yaml';
 
 const formatDiff = (diff) => {
   const signs = {
@@ -18,14 +20,30 @@ const buildDiffItem = (act, key, val) => {
   return item;
 };
 
-const getContent = (pathToFile) => {
-  const encoding = 'utf-8';
-  return JSON.parse(fs.readFileSync(pathToFile, encoding));
+const getTypeFile = (filepath) => {
+  const ext = path.extname(filepath).replace('.', '');
+  if (ext === 'yml') {
+    return 'yaml';
+  }
+  return ext;
 };
 
-export default (pathToFstFile, pathToSndFile) => {
-  const fstContent = getContent(pathToFstFile);
-  const sndContent = getContent(pathToSndFile);
+const getParser = type => {
+  const parsers = {
+    json: (file) => JSON.parse(file),
+    yaml: (file) => yaml.load(file),
+  };
+  return parsers[type];
+};
+
+const getContent = (pathToFile) => {
+  const encoding = 'utf-8';
+  const file = fs.readFileSync(pathToFile, encoding);
+  const parser = getParser(getTypeFile(pathToFile));
+  return parser(file);
+};
+
+const getDiff = (fstContent, sndContent) => {
   const fstKeys = Object.keys(fstContent);
   const sndKeys = Object.keys(sndContent);
 
@@ -40,5 +58,11 @@ export default (pathToFstFile, pathToSndFile) => {
     return [buildDiffItem('changedTo', key, sndContent[key]), buildDiffItem('changedFrom', key, fstContent[key])];
   });
 
-  return formatDiff(_.flatten(diff));
+  return _.flatten(diff);
+};
+
+export default (pathToFstFile, pathToSndFile) => {
+  const fstContent = getContent(pathToFstFile);
+  const sndContent = getContent(pathToSndFile);
+  return formatDiff(getDiff(fstContent, sndContent));
 };
