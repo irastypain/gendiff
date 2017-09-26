@@ -1,7 +1,8 @@
 import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
-import parser from './parsers';
+import yaml from 'js-yaml';
+import ini from 'ini';
 
 const formatDiff = (diff) => {
   const signs = {
@@ -20,8 +21,17 @@ const buildDiffItem = (act, key, val) => {
   return item;
 };
 
-const getTypeFile = (filepath) => {
-  const ext = path.extname(filepath).replace('.', '');
+const parse = (format, fileData) => {
+  const parsers = {
+    json: data => JSON.parse(data),
+    yaml: data => yaml.load(data),
+    ini: data => ini.parse(data),
+  };
+  return parsers[format](fileData);
+};
+
+const getFormat = (filePath) => {
+  const ext = path.extname(filePath).replace('.', '');
   if (ext === 'yml') {
     return 'yaml';
   }
@@ -30,31 +40,31 @@ const getTypeFile = (filepath) => {
 
 const getContent = (pathToFile) => {
   const encoding = 'utf-8';
-  const file = fs.readFileSync(pathToFile, encoding);
-  const format = getTypeFile(pathToFile);
-  return parser(format, file);
+  const fileData = fs.readFileSync(pathToFile, encoding);
+  const format = getFormat(pathToFile);
+  return parse(format, fileData);
 };
 
-const getDiff = (fstContent, sndContent) => {
-  const fstKeys = Object.keys(fstContent);
-  const sndKeys = Object.keys(sndContent);
+const getDiff = (dataBefore, dataAfter) => {
+  const dataBeforeKeys = Object.keys(dataBefore);
+  const dataAfterKeys = Object.keys(dataAfter);
 
-  const diff = _.union(fstKeys, sndKeys).map((key) => {
-    if (_.isEqual(fstContent[key], sndContent[key])) {
-      return buildDiffItem('equal', key, fstContent[key]);
-    } else if (!fstKeys.includes(key)) {
-      return buildDiffItem('added', key, sndContent[key]);
-    } else if (!sndKeys.includes(key)) {
-      return buildDiffItem('deleted', key, fstContent[key]);
+  const diff = _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
+    if (_.isEqual(dataBefore[key], dataAfter[key])) {
+      return buildDiffItem('equal', key, dataBefore[key]);
+    } else if (!dataBeforeKeys.includes(key)) {
+      return buildDiffItem('added', key, dataAfter[key]);
+    } else if (!dataAfterKeys.includes(key)) {
+      return buildDiffItem('deleted', key, dataBefore[key]);
     }
-    return [buildDiffItem('changedTo', key, sndContent[key]), buildDiffItem('changedFrom', key, fstContent[key])];
+    return [buildDiffItem('changedTo', key, dataAfter[key]), buildDiffItem('changedFrom', key, dataBefore[key])];
   });
 
   return _.flatten(diff);
 };
 
-export default (pathToFstFile, pathToSndFile) => {
-  const fstContent = getContent(pathToFstFile);
-  const sndContent = getContent(pathToSndFile);
-  return formatDiff(getDiff(fstContent, sndContent));
+export default (pathToFirstFile, pathToSecondFile) => {
+  const dataBefore = getContent(pathToFirstFile);
+  const dataAfter = getContent(pathToSecondFile);
+  return formatDiff(getDiff(dataBefore, dataAfter));
 };
