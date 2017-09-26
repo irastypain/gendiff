@@ -14,3 +14,9 @@ test('compare two flat .yaml files', () => {
   const pathToSndFile = `${pathToFixtures}/yaml/after.yaml`;
   expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedFlat);
 });
+
+test('compare two flat .ini files', () => {
+  const pathToFstFile = `${pathToFixtures}/ini/before.ini`;
+  const pathToSndFile = `${pathToFixtures}/ini/after.ini`;
+  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedFlat);
+});
