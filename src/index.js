@@ -2,18 +2,15 @@ import fs from 'fs';
 import _ from 'lodash';
 
 const formatDiff = (diff) => {
-  const result = [...diff].map(item => `  ${item.action} ${item.key}: ${item.val}`);
-  return `{\n${result.join('\n')}\n}`;
+  const signs = { equal: ' ', added: '+', deleted: '-', changedFrom: '-', changedTo: '+' };
+  const lines = diff.map(item => `  ${signs[item.action]} ${item.property}: ${item.value}`);
+  return `{\n${lines.join('\n')}\n}`;
 };
 
-const buildDiffItem = (sign, property, value) => {
-  const item = { action: sign, key: property, val: value };
+const buildDiffItem = (act, key, val) => {
+  const item = { action: act, property: key, value: val };
   return item;
 };
-
-const delSign = '-';
-const addSign = '+';
-const eqSign = ' ';
 
 const getContent = (pathToFile) => {
   const encoding = 'utf-8';
@@ -26,23 +23,16 @@ export default (pathToFstFile, pathToSndFile) => {
   const fstKeys = Object.keys(fstContent);
   const sndKeys = Object.keys(sndContent);
 
-  const fstPartDiff = fstKeys.reduce((acc, key) => {
-    const fstValue = fstContent[key];
-
-    if (!sndKeys.includes(key)) {
-      acc.add(buildDiffItem(delSign, key, fstValue));
-    } else if (_.isEqual(fstValue, sndContent[key])) {
-      acc.add(buildDiffItem(eqSign, key, fstValue));
-    } else {
-      acc.add(buildDiffItem(addSign, key, sndContent[key]));
-      acc.add(buildDiffItem(delSign, key, fstValue));
+  const diff = _.union(fstKeys, sndKeys).map(key => {
+    if (_.isEqual(fstContent[key], sndContent[key])) {
+      return buildDiffItem('equal', key, fstContent[key]);
+    } else if (!fstKeys.includes(key)) {
+      return buildDiffItem('added', key, sndContent[key]);
+    } else if (!sndKeys.includes(key)) {
+      return buildDiffItem('deleted', key, fstContent[key]);
     }
+    return [ buildDiffItem('changedTo', key, sndContent[key]), buildDiffItem('changedFrom', key, fstContent[key]) ];
+  });
 
-    return acc;
-  }, new Set());
-
-  const sndPartDiff = sndKeys.filter(key => !fstKeys.includes(key))
-    .reduce((acc, key) => acc.add(buildDiffItem(addSign, key, sndContent[key])), new Set());
-
-  return formatDiff(new Set([...fstPartDiff, ...sndPartDiff]));
+  return formatDiff(_.flatten(diff));
 };
