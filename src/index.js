@@ -2,9 +2,9 @@ import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
 import yaml from 'js-yaml';
-import ini from 'ini';
+import ini from 'ini-config-parser';
 
-const formatDiff = (diff) => {
+const render = (ast, level = 0) => {
   const signs = {
     equal: ' ',
     added: '+',
@@ -12,8 +12,22 @@ const formatDiff = (diff) => {
     changedFrom: '-',
     changedTo: '+',
   };
-  const lines = diff.map(item => `  ${signs[item.action]} ${item.property}: ${item.value}`);
-  return `{\n${lines.join('\n')}\n}`;
+  const ident = '    '.repeat(level);
+  const isDiff = data => _.isArray(data);
+
+  const formatDiff = diff =>
+    diff.map((item) => {
+      const { action, property, value } = item;
+      if (isDiff(value) || _.isObject(value)) {
+        return `  ${signs[action]} ${property}: ${render(value, level + 1)}`;
+      }
+      return `  ${signs[action]} ${property}: ${value}`;
+    });
+
+  const formatObject = object => _.keys(object).map(key => `    ${key}: ${object[key]}`);
+
+  const lines = isDiff(ast) ? formatDiff(ast) : formatObject(ast);
+  return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
 };
 
 const buildDiffItem = (act, key, val) => {
@@ -52,6 +66,8 @@ const getDiff = (dataBefore, dataAfter) => {
   const diff = _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
     if (_.isEqual(dataBefore[key], dataAfter[key])) {
       return buildDiffItem('equal', key, dataBefore[key]);
+    } else if (_.isObject(dataBefore[key]) && _.isObject(dataAfter[key])) {
+      return buildDiffItem('equal', key, getDiff(dataBefore[key], dataAfter[key]));
     } else if (!dataBeforeKeys.includes(key)) {
       return buildDiffItem('added', key, dataAfter[key]);
     } else if (!dataAfterKeys.includes(key)) {
@@ -66,5 +82,5 @@ const getDiff = (dataBefore, dataAfter) => {
 export default (pathToFirstFile, pathToSecondFile) => {
   const dataBefore = getContent(pathToFirstFile);
   const dataAfter = getContent(pathToSecondFile);
-  return formatDiff(getDiff(dataBefore, dataAfter));
+  return render(getDiff(dataBefore, dataAfter));
 };
