@@ -32,3 +32,15 @@ test('compare two recursive .json files', () => {
   const pathToSndFile = `${pathToFixtures}/json/afterRecursive.json`;
   expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
 });
+
+test('compare two recursive .yaml files', () => {
+  const pathToFstFile = `${pathToFixtures}/yaml/beforeRecursive.yaml`;
+  const pathToSndFile = `${pathToFixtures}/yaml/afterRecursive.yaml`;
+  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
+});
+
+test('compare two recursive .ini files', () => {
+  const pathToFstFile = `${pathToFixtures}/ini/beforeRecursive.ini`;
+  const pathToSndFile = `${pathToFixtures}/ini/afterRecursive.ini`;
+  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
+});
