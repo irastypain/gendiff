@@ -4,34 +4,57 @@ import path from 'path';
 import yaml from 'js-yaml';
 import ini from 'ini-config-parser';
 
-const render = (ast, level = 0) => {
-  const signs = {
-    equal: ' ',
-    added: '+',
-    deleted: '-',
-    changedFrom: '-',
-    changedTo: '+',
-  };
-  const ident = '    '.repeat(level);
-  const isDiff = data => _.isArray(data);
+const render = (ast) => {
+  const formatDiff = (diff, level) => {
+    const signs = {
+      equal: ' ',
+      added: '+',
+      deleted: '-',
+      changedFrom: '-',
+      changedTo: '+',
+    };
 
-  const formatDiff = diff =>
-    diff.map((item) => {
-      const { action, property, value } = item;
-      if (isDiff(value) || _.isObject(value)) {
-        return `  ${signs[action]} ${property}: ${render(value, level + 1)}`;
+    const formatLines = (lines, levelIdent) => {
+      const ident = '    '.repeat(levelIdent);
+      return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
+    };
+
+    const formatObject = (object, levelIdent) => {
+      const lines = _.keys(object).map(key => `    ${key}: ${object[key]}`);
+      return formatLines(lines, levelIdent);
+    };
+
+    const formatNode = (node) => {
+      const {
+        type,
+        name,
+        value,
+        children,
+      } = node;
+
+      if (!_.isEmpty(children)) {
+        return `  ${signs[type]} ${name}: ${formatDiff(children, level + 1)}`;
+      } else if (_.isObject(value)) {
+        return `  ${signs[type]} ${name}: ${formatObject(value, level + 1)}`;
       }
-      return `  ${signs[action]} ${property}: ${value}`;
-    });
+      return `  ${signs[type]} ${name}: ${value}`;
+    };
 
-  const formatObject = object => _.keys(object).map(key => `    ${key}: ${object[key]}`);
+    const lines = diff.map(formatNode);
+    return formatLines(lines, level);
+  };
 
-  const lines = isDiff(ast) ? formatDiff(ast) : formatObject(ast);
-  return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
+  const startLevel = 0;
+  return formatDiff(ast, startLevel);
 };
 
-const buildDiffItem = (act, key, val) => {
-  const item = { action: act, property: key, value: val };
+const makeNode = (type, name, value, children = []) => {
+  const item = {
+    type,
+    name,
+    value,
+    children,
+  };
   return item;
 };
 
@@ -65,15 +88,15 @@ const getDiff = (dataBefore, dataAfter) => {
 
   const diff = _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
     if (_.isEqual(dataBefore[key], dataAfter[key])) {
-      return buildDiffItem('equal', key, dataBefore[key]);
+      return makeNode('equal', key, dataBefore[key]);
     } else if (_.isObject(dataBefore[key]) && _.isObject(dataAfter[key])) {
-      return buildDiffItem('equal', key, getDiff(dataBefore[key], dataAfter[key]));
+      return makeNode('equal', key, null, getDiff(dataBefore[key], dataAfter[key]));
     } else if (!dataBeforeKeys.includes(key)) {
-      return buildDiffItem('added', key, dataAfter[key]);
+      return makeNode('added', key, dataAfter[key]);
     } else if (!dataAfterKeys.includes(key)) {
-      return buildDiffItem('deleted', key, dataBefore[key]);
+      return makeNode('deleted', key, dataBefore[key]);
     }
-    return [buildDiffItem('changedTo', key, dataAfter[key]), buildDiffItem('changedFrom', key, dataBefore[key])];
+    return [makeNode('changedTo', key, dataAfter[key]), makeNode('changedFrom', key, dataBefore[key])];
   });
 
   return _.flatten(diff);
