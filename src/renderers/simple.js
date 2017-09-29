@@ -13,9 +13,12 @@ const formatLines = (lines, levelIdent) => {
   return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
 };
 
-const formatObject = (object, levelIdent) => {
-  const lines = _.keys(object).map(key => `    ${key}: ${object[key]}`);
-  return formatLines(lines, levelIdent);
+const formatValue = (value, levelIdent) => {
+  if (_.isObject(value)) {
+    const lines = _.keys(value).map(key => `    ${key}: ${value[key]}`);
+    return formatLines(lines, levelIdent + 1);
+  }
+  return `${value}`;
 };
 
 const formatDiff = (diff, level = 0) => {
@@ -31,11 +34,9 @@ const formatDiff = (diff, level = 0) => {
     if (!_.isEmpty(children)) {
       return `  ${signs[type]} ${name}: ${formatDiff(children, level + 1)}`;
     } else if (type === 'added') {
-      const value = _.isObject(newValue) ? formatObject(newValue, level + 1) : newValue;
-      return `  ${signs.added} ${name}: ${value}`;
+      return `  ${signs[type]} ${name}: ${formatValue(newValue, level)}`;
     } else if (type === 'deleted') {
-      const value = _.isObject(oldValue) ? formatObject(oldValue, level + 1) : oldValue;
-      return `  ${signs.deleted} ${name}: ${value}`;
+      return `  ${signs[type]} ${name}: ${formatValue(oldValue, level)}`;
     } else if (type === 'changed') {
       return [
         `  ${signs.changedTo} ${name}: ${newValue}`,

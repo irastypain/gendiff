@@ -3,11 +3,12 @@ import genDiff from '../src/index';
 
 const pathToFixtures = `${__dirname}/__fixtures__`;
 const getPath = (filename, ext) => `${pathToFixtures}/${ext}/${filename}.${ext}`;
+const getExpected = filename => fs.readFileSync(`${pathToFixtures}/${filename}`, 'utf-8');
 
 describe('compare two flat files', () => {
   let expected;
   beforeAll(() => {
-    expected = fs.readFileSync(`${pathToFixtures}/diffFlat.txt`, 'utf-8');
+    expected = getExpected('diffFlat.txt');
   });
 
   test('.json', () => {
@@ -24,7 +25,7 @@ describe('compare two flat files', () => {
 describe('compare two recursive files', () => {
   let expected;
   beforeAll(() => {
-    expected = fs.readFileSync(`${pathToFixtures}/diffRecursive.txt`, 'utf-8');
+    expected = getExpected('diffRecursive.txt');
   });
 
   test('.json', () => {
@@ -41,7 +42,7 @@ describe('compare two recursive files', () => {
 describe('compare two flat files with format plain', () => {
   let expected;
   beforeAll(() => {
-    expected = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
+    expected = getExpected('diffFlatPlain.txt');
   });
 
   test('.json', () => {
@@ -58,7 +59,7 @@ describe('compare two flat files with format plain', () => {
 describe('compare two recursive files with format plain', () => {
   let expected;
   beforeAll(() => {
-    expected = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
+    expected = getExpected('diffRecursivePlain.txt');
   });
 
   test('.json', () => {
