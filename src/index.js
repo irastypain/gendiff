@@ -5,11 +5,12 @@ import yaml from 'js-yaml';
 import ini from 'ini-config-parser';
 import getRenderer from './renderers';
 
-const makeNode = (type, name, value, children = []) => {
+const makeNode = (type, name, oldValue, newValue, children = []) => {
   const item = {
     type,
     name,
-    value,
+    oldValue,
+    newValue,
     children,
   };
   return item;
@@ -43,20 +44,18 @@ const getDiff = (dataBefore, dataAfter) => {
   const dataBeforeKeys = Object.keys(dataBefore);
   const dataAfterKeys = Object.keys(dataAfter);
 
-  const diff = _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
+  return _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
     if (_.isEqual(dataBefore[key], dataAfter[key])) {
-      return makeNode('equal', key, dataBefore[key]);
+      return makeNode('equal', key, null, dataBefore[key]);
     } else if (_.isObject(dataBefore[key]) && _.isObject(dataAfter[key])) {
-      return makeNode('equal', key, null, getDiff(dataBefore[key], dataAfter[key]));
+      return makeNode('equal', key, dataBefore[key], dataAfter[key], getDiff(dataBefore[key], dataAfter[key]));
     } else if (!dataBeforeKeys.includes(key)) {
-      return makeNode('added', key, dataAfter[key]);
+      return makeNode('added', key, null, dataAfter[key]);
     } else if (!dataAfterKeys.includes(key)) {
-      return makeNode('deleted', key, dataBefore[key]);
+      return makeNode('deleted', key, dataBefore[key], null);
     }
-    return [makeNode('changedTo', key, dataAfter[key]), makeNode('changedFrom', key, dataBefore[key])];
+    return makeNode('changed', key, dataBefore[key], dataAfter[key]);
   });
-
-  return _.flatten(diff);
 };
 
 export default (pathToFirstFile, pathToSecondFile, format = 'simple') => {
