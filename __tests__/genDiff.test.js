@@ -2,63 +2,55 @@ import fs from 'fs';
 import genDiff from '../src/index';
 
 const pathToFixtures = `${__dirname}/__fixtures__`;
+const buildPath = (filename, type) => `${pathToFixtures}/${type}/${filename}.${type}`;
 
+const flatTest = (type) => {
+  test(`compare two flat .${type} files`, () => {
+    const pathToFirstFile = buildPath('before', type);
+    const pathToSecondFile = buildPath('after', type);
+    const expected = fs.readFileSync(`${pathToFixtures}/diffFlat.txt`, 'utf-8');
+    expect(genDiff(pathToFirstFile, pathToSecondFile)).toBe(expected);
+  });
+};
 
-const expectedFlat = fs.readFileSync(`${pathToFixtures}/diffFlat.txt`, 'utf-8');
+const recursiveTest = (type) => {
+  test(`compare two recursive .${type} files`, () => {
+    const pathToFirstFile = buildPath('beforeRecursive', type);
+    const pathToSecondFile = buildPath('afterRecursive', type);
+    const expected = fs.readFileSync(`${pathToFixtures}/diffRecursive.txt`, 'utf-8');
+    expect(genDiff(pathToFirstFile, pathToSecondFile)).toBe(expected);
+  });
+};
 
-test('compare two flat .json files', () => {
-  const pathToFstFile = `${pathToFixtures}/json/before.json`;
-  const pathToSndFile = `${pathToFixtures}/json/after.json`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedFlat);
-});
+const flatPlainTest = (type) => {
+  test(`compare two flat .${type} files with format plain`, () => {
+    const pathToFirstFile = buildPath('before', type);
+    const pathToSecondFile = buildPath('after', type);
+    const expected = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
+    expect(genDiff(pathToFirstFile, pathToSecondFile, 'plain')).toBe(expected);
+  });
+};
 
-test('compare two flat .yaml files', () => {
-  const pathToFstFile = `${pathToFixtures}/yaml/before.yaml`;
-  const pathToSndFile = `${pathToFixtures}/yaml/after.yaml`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedFlat);
-});
+const recursivePlainTest = (type) => {
+  test(`compare two recursive .${type} files with format plain`, () => {
+    const pathToFirstFile = buildPath('beforeRecursive', type);
+    const pathToSecondFile = buildPath('afterRecursive', type);
+    const expected = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
+    expect(genDiff(pathToFirstFile, pathToSecondFile, 'plain')).toBe(expected);
+  });
+};
 
-test('compare two flat .ini files', () => {
-  const pathToFstFile = `${pathToFixtures}/ini/before.ini`;
-  const pathToSndFile = `${pathToFixtures}/ini/after.ini`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedFlat);
-});
+const types = [
+  'json',
+  'yaml',
+  'ini',
+];
 
+const tests = [
+  flatTest,
+  recursiveTest,
+  flatPlainTest,
+  recursivePlainTest,
+];
 
-const expectedRecursive = fs.readFileSync(`${pathToFixtures}/diffRecursive.txt`, 'utf-8');
-
-test('compare two recursive .json files', () => {
-  const pathToFstFile = `${pathToFixtures}/json/beforeRecursive.json`;
-  const pathToSndFile = `${pathToFixtures}/json/afterRecursive.json`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
-});
-
-test('compare two recursive .yaml files', () => {
-  const pathToFstFile = `${pathToFixtures}/yaml/beforeRecursive.yaml`;
-  const pathToSndFile = `${pathToFixtures}/yaml/afterRecursive.yaml`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
-});
-
-test('compare two recursive .ini files', () => {
-  const pathToFstFile = `${pathToFixtures}/ini/beforeRecursive.ini`;
-  const pathToSndFile = `${pathToFixtures}/ini/afterRecursive.ini`;
-  expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
-});
-
-
-const expectedFlatPlain = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
-
-test('compare two flat .json files with format plain', () => {
-  const pathToFstFile = `${pathToFixtures}/json/before.json`;
-  const pathToSndFile = `${pathToFixtures}/json/after.json`;
-  expect(genDiff(pathToFstFile, pathToSndFile, 'plain')).toBe(expectedFlatPlain);
-});
-
-
-const expectedRecursivePlain = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
-
-test('compare two recursive .json files with format plain', () => {
-  const pathToFstFile = `${pathToFixtures}/json/beforeRecursive.json`;
-  const pathToSndFile = `${pathToFixtures}/json/afterRecursive.json`;
-  expect(genDiff(pathToFstFile, pathToSndFile, 'plain')).toBe(expectedRecursivePlain);
-});
+tests.map(test => types.map(test));
