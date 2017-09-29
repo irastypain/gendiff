@@ -4,8 +4,8 @@ import path from 'path';
 import yaml from 'js-yaml';
 import ini from 'ini-config-parser';
 
-const render = (ast) => {
-  const formatDiff = (diff, level) => {
+const render = (ast, format) => {
+  const formatDiff = (diff, level = 0) => {
     const signs = {
       equal: ' ',
       added: '+',
@@ -44,8 +44,38 @@ const render = (ast) => {
     return formatLines(lines, level);
   };
 
-  const startLevel = 0;
-  return formatDiff(ast, startLevel);
+  const formatPlain = (diff, parents = []) => {
+    const formatLines = lines => lines.filter(line => !_.isEmpty(line)).join('\n');
+    const lines = diff.map((node, index) => {
+      const { type, value, children } = node;
+      const fullName = [...parents, node].map(item => item.name).join('.');
+
+      if (!_.isEmpty(children)) {
+        return formatPlain(children, [...parents, node]);
+      } else if (type === 'added') {
+        const valueText = _.isObject(value) ? 'complex value' : `value: ${value}`;
+        return `Property '${fullName}' was ${type} with ${valueText}`;
+      } else if (type === 'deleted') {
+        return `Property '${fullName}' was removed`;
+      } else if (type === 'changedTo') {
+        const oldValue = diff[index + 1].value;
+        const newValue = value;
+        return `Property '${fullName}' was updated. From '${oldValue}' to '${newValue}'`;
+      }
+      return '';
+    });
+    return formatLines(lines);
+  };
+
+  const formatAst = (formatType, data) => {
+    const formatters = {
+      default: diff => formatDiff(diff),
+      plain: diff => formatPlain(diff),
+    };
+    return formatters[formatType](data);
+  };
+
+  return formatAst(format, ast);
 };
 
 const makeNode = (type, name, value, children = []) => {
@@ -102,8 +132,8 @@ const getDiff = (dataBefore, dataAfter) => {
   return _.flatten(diff);
 };
 
-export default (pathToFirstFile, pathToSecondFile) => {
+export default (pathToFirstFile, pathToSecondFile, format = 'default') => {
   const dataBefore = getContent(pathToFirstFile);
   const dataAfter = getContent(pathToSecondFile);
-  return render(getDiff(dataBefore, dataAfter));
+  return render(getDiff(dataBefore, dataAfter), format);
 };
