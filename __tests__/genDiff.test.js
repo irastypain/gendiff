@@ -44,3 +44,21 @@ test('compare two recursive .ini files', () => {
   const pathToSndFile = `${pathToFixtures}/ini/afterRecursive.ini`;
   expect(genDiff(pathToFstFile, pathToSndFile)).toBe(expectedRecursive);
 });
+
+
+const expectedFlatPlain = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
+
+test('compare two flat .json files with format plain', () => {
+  const pathToFstFile = `${pathToFixtures}/json/before.json`;
+  const pathToSndFile = `${pathToFixtures}/json/after.json`;
+  expect(genDiff(pathToFstFile, pathToSndFile, 'plain')).toBe(expectedFlatPlain);
+});
+
+
+const expectedRecursivePlain = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
+
+test('compare two recursive .json files with format plain', () => {
+  const pathToFstFile = `${pathToFixtures}/json/beforeRecursive.json`;
+  const pathToSndFile = `${pathToFixtures}/json/afterRecursive.json`;
+  expect(genDiff(pathToFstFile, pathToSndFile, 'plain')).toBe(expectedRecursivePlain);
+});
