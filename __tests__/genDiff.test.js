@@ -2,55 +2,72 @@ import fs from 'fs';
 import genDiff from '../src/index';
 
 const pathToFixtures = `${__dirname}/__fixtures__`;
-const buildPath = (filename, type) => `${pathToFixtures}/${type}/${filename}.${type}`;
+const getPath = (filename, ext) => `${pathToFixtures}/${ext}/${filename}.${ext}`;
 
-const flatTest = (type) => {
-  test(`compare two flat .${type} files`, () => {
-    const pathToFirstFile = buildPath('before', type);
-    const pathToSecondFile = buildPath('after', type);
-    const expected = fs.readFileSync(`${pathToFixtures}/diffFlat.txt`, 'utf-8');
-    expect(genDiff(pathToFirstFile, pathToSecondFile)).toBe(expected);
+describe('compare two flat files', () => {
+  let expected;
+  beforeAll(() => {
+    expected = fs.readFileSync(`${pathToFixtures}/diffFlat.txt`, 'utf-8');
   });
-};
 
-const recursiveTest = (type) => {
-  test(`compare two recursive .${type} files`, () => {
-    const pathToFirstFile = buildPath('beforeRecursive', type);
-    const pathToSecondFile = buildPath('afterRecursive', type);
-    const expected = fs.readFileSync(`${pathToFixtures}/diffRecursive.txt`, 'utf-8');
-    expect(genDiff(pathToFirstFile, pathToSecondFile)).toBe(expected);
+  test('.json', () => {
+    expect(genDiff(getPath('before', 'json'), getPath('after', 'json'))).toBe(expected);
   });
-};
-
-const flatPlainTest = (type) => {
-  test(`compare two flat .${type} files with format plain`, () => {
-    const pathToFirstFile = buildPath('before', type);
-    const pathToSecondFile = buildPath('after', type);
-    const expected = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
-    expect(genDiff(pathToFirstFile, pathToSecondFile, 'plain')).toBe(expected);
+  test('.yaml', () => {
+    expect(genDiff(getPath('before', 'yaml'), getPath('after', 'yaml'))).toBe(expected);
   });
-};
-
-const recursivePlainTest = (type) => {
-  test(`compare two recursive .${type} files with format plain`, () => {
-    const pathToFirstFile = buildPath('beforeRecursive', type);
-    const pathToSecondFile = buildPath('afterRecursive', type);
-    const expected = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
-    expect(genDiff(pathToFirstFile, pathToSecondFile, 'plain')).toBe(expected);
+  test('.ini', () => {
+    expect(genDiff(getPath('before', 'ini'), getPath('after', 'ini'))).toBe(expected);
   });
-};
+});
 
-const types = [
-  'json',
-  'yaml',
-  'ini',
-];
+describe('compare two recursive files', () => {
+  let expected;
+  beforeAll(() => {
+    expected = fs.readFileSync(`${pathToFixtures}/diffRecursive.txt`, 'utf-8');
+  });
 
-const tests = [
-  flatTest,
-  recursiveTest,
-  flatPlainTest,
-  recursivePlainTest,
-];
+  test('.json', () => {
+    expect(genDiff(getPath('beforeRecursive', 'json'), getPath('afterRecursive', 'json'))).toBe(expected);
+  });
+  test('.yaml', () => {
+    expect(genDiff(getPath('beforeRecursive', 'yaml'), getPath('afterRecursive', 'yaml'))).toBe(expected);
+  });
+  test('.ini', () => {
+    expect(genDiff(getPath('beforeRecursive', 'ini'), getPath('afterRecursive', 'ini'))).toBe(expected);
+  });
+});
 
-tests.map(test => types.map(test));
+describe('compare two flat files with format plain', () => {
+  let expected;
+  beforeAll(() => {
+    expected = fs.readFileSync(`${pathToFixtures}/diffFlatPlain.txt`, 'utf-8');
+  });
+
+  test('.json', () => {
+    expect(genDiff(getPath('before', 'json'), getPath('after', 'json'), 'plain')).toBe(expected);
+  });
+  test('.yaml', () => {
+    expect(genDiff(getPath('before', 'yaml'), getPath('after', 'yaml'), 'plain')).toBe(expected);
+  });
+  test('.ini', () => {
+    expect(genDiff(getPath('before', 'ini'), getPath('after', 'ini'), 'plain')).toBe(expected);
+  });
+});
+
+describe('compare two recursive files with format plain', () => {
+  let expected;
+  beforeAll(() => {
+    expected = fs.readFileSync(`${pathToFixtures}/diffRecursivePlain.txt`, 'utf-8');
+  });
+
+  test('.json', () => {
+    expect(genDiff(getPath('beforeRecursive', 'json'), getPath('afterRecursive', 'json'), 'plain')).toBe(expected);
+  });
+  test('.yaml', () => {
+    expect(genDiff(getPath('beforeRecursive', 'yaml'), getPath('afterRecursive', 'yaml'), 'plain')).toBe(expected);
+  });
+  test('.ini', () => {
+    expect(genDiff(getPath('beforeRecursive', 'ini'), getPath('afterRecursive', 'ini'), 'plain')).toBe(expected);
+  });
+});
