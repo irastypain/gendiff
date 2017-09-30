@@ -16,7 +16,7 @@ const formatPlain = (diff, parents = []) => {
       return formatPlain(children, [...parents, node]);
     } else if (type === 'added') {
       const valueText = _.isObject(newValue) ? 'complex value' : `value: ${newValue}`;
-      return `Property '${fullName}' was ${type} with ${valueText}`;
+      return `Property '${fullName}' was added with ${valueText}`;
     } else if (type === 'deleted') {
       return `Property '${fullName}' was removed`;
     } else if (type === 'changed') {
