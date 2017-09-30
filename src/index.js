@@ -2,7 +2,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import path from 'path';
 import yaml from 'js-yaml';
-import ini from 'ini-config-parser';
+import ini from 'ini';
 import getRenderer from './renderers';
 
 const makeNode = (type, name, oldValue, newValue, children = []) => {
