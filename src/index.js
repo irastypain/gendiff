@@ -5,17 +5,6 @@ import yaml from 'js-yaml';
 import ini from 'ini';
 import getRenderer from './renderers';
 
-const makeNode = (type, name, oldValue, newValue, children = []) => {
-  const item = {
-    type,
-    name,
-    oldValue,
-    newValue,
-    children,
-  };
-  return item;
-};
-
 const parse = (format, fileData) => {
   const parsers = {
     json: data => JSON.parse(data),
@@ -46,15 +35,20 @@ const getDiff = (dataBefore, dataAfter) => {
 
   return _.union(dataBeforeKeys, dataAfterKeys).map((key) => {
     if (_.isEqual(dataBefore[key], dataAfter[key])) {
-      return makeNode('equal', key, null, dataBefore[key]);
+      return { type: 'unchanged', key, value: dataBefore[key] };
     } else if (_.isObject(dataBefore[key]) && _.isObject(dataAfter[key])) {
-      return makeNode('equal', key, dataBefore[key], dataAfter[key], getDiff(dataBefore[key], dataAfter[key]));
+      return { type: 'nested', key, children: getDiff(dataBefore[key], dataAfter[key]) };
     } else if (!dataBeforeKeys.includes(key)) {
-      return makeNode('added', key, null, dataAfter[key]);
+      return { type: 'added', key, value: dataAfter[key] };
     } else if (!dataAfterKeys.includes(key)) {
-      return makeNode('deleted', key, dataBefore[key], null);
+      return { type: 'deleted', key, value: dataBefore[key] };
     }
-    return makeNode('changed', key, dataBefore[key], dataAfter[key]);
+    return {
+      type: 'updated',
+      key,
+      oldValue: dataBefore[key],
+      newValue: dataAfter[key],
+    };
   });
 };
 
