@@ -1,35 +1,25 @@
 import _ from 'lodash';
 
-const formatValue = (value, type) => {
-  if (_.isObject(value)) {
-    return _.keys(value).reduce((acc, key) => {
-      const newAcc = { ...acc, [key]: { type, value: value[key] } };
+const formatValue = (rawValue, type) => {
+  if (_.isObject(rawValue)) {
+    return _.keys(rawValue).reduce((acc, key) => {
+      const newAcc = { ...acc, [key]: { type, value: rawValue[key] } };
       return newAcc;
     }, {});
   }
-  return value;
+  return rawValue;
 };
 
 const formatJson = (diff) => {
   const result = diff.reduce((acc, node) => {
-    const {
-      name,
-      type,
-      oldValue,
-      newValue,
-      children,
-    } = node;
+    const { type, key } = node;
 
-    if (!_.isEmpty(children)) {
-      return { ...acc, [name]: { type, value: formatJson(children) } };
-    } else if (type === 'added') {
-      return { ...acc, [name]: { type, value: formatValue(newValue, type) } };
-    } else if (type === 'deleted') {
-      return { ...acc, [name]: { type, value: formatValue(oldValue, type) } };
-    } else if (type === 'changed') {
-      return { ...acc, [name]: { type, from: oldValue, to: newValue } };
+    if (type === 'nested') {
+      return { ...acc, [key]: { type, value: formatJson(node.children) } };
+    } else if (type === 'updated') {
+      return { ...acc, [key]: { type, from: node.oldValue, to: node.newValue } };
     }
-    return { ...acc, [name]: { type, value: newValue } };
+    return { ...acc, [key]: { type, value: formatValue(node.value, type) } };
   }, {});
 
   return result;

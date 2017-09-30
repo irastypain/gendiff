@@ -1,11 +1,11 @@
 import _ from 'lodash';
 
 const signs = {
-  equal: ' ',
+  unchanged: ' ',
   added: '+',
   deleted: '-',
-  changedFrom: '-',
-  changedTo: '+',
+  nested: ' ',
+  updated: ' ',
 };
 
 const formatLines = (lines, levelIdent) => {
@@ -13,38 +13,29 @@ const formatLines = (lines, levelIdent) => {
   return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
 };
 
-const formatValue = (value, levelIdent) => {
-  if (_.isObject(value)) {
-    const lines = _.keys(value).map(key => `    ${key}: ${value[key]}`);
+const formatValue = (rawValue, levelIdent) => {
+  if (_.isObject(rawValue)) {
+    const lines = _.keys(rawValue).map(key => `    ${key}: ${rawValue[key]}`);
     return formatLines(lines, levelIdent + 1);
   }
-  return `${value}`;
+  return `${rawValue}`;
 };
 
 const formatDiff = (diff, level = 0) => {
-  const lines = _.flatten(diff.map((node) => {
-    const {
-      type,
-      name,
-      oldValue,
-      newValue,
-      children,
-    } = node;
+  const lines = diff.reduce((acc, node) => {
+    const { type, key } = node;
 
-    if (!_.isEmpty(children)) {
-      return `  ${signs[type]} ${name}: ${formatDiff(children, level + 1)}`;
-    } else if (type === 'added') {
-      return `  ${signs[type]} ${name}: ${formatValue(newValue, level)}`;
-    } else if (type === 'deleted') {
-      return `  ${signs[type]} ${name}: ${formatValue(oldValue, level)}`;
-    } else if (type === 'changed') {
+    if (type === 'nested') {
+      return [...acc, `  ${signs[type]} ${key}: ${formatDiff(node.children, level + 1)}`];
+    } else if (type === 'updated') {
       return [
-        `  ${signs.changedTo} ${name}: ${newValue}`,
-        `  ${signs.changedFrom} ${name}: ${oldValue}`,
+        ...acc,
+        `  ${signs.added} ${key}: ${node.newValue}`,
+        `  ${signs.deleted} ${key}: ${node.oldValue}`,
       ];
     }
-    return `    ${name}: ${newValue}`;
-  }));
+    return [...acc, `  ${signs[type]} ${key}: ${formatValue(node.value, level)}`];
+  }, []);
 
   return formatLines(lines, level);
 };
