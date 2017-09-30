@@ -1,30 +1,36 @@
 import _ from 'lodash';
 
-const formatLines = lines => lines.filter(line => !_.isEmpty(line)).join('\n');
+export const out = preparedData => preparedData;
+
+export const getLevel = parents => parents.length;
+
+export const formatLines = lines => lines.filter(line => !_.isEmpty(line)).join('\n');
+
 const formatValue = (rawValue) => {
   const formattedValue = _.isObject(rawValue) ? 'complex value' : `value: ${rawValue}`;
   return formattedValue;
 };
 
-const formatPlain = (diff, parents = []) => {
-  const lines = diff.map((node) => {
-    const { type } = node;
-    const fullName = [...parents, node].map(item => item.key).join('.');
+const getFullName = (parents, node) => [...parents, node].map(item => item.key).join('.');
 
-    if (type === 'nested') {
-      return formatPlain(node.children, [...parents, node]);
-    } else if (type === 'added') {
-      return `Property '${fullName}' was added with ${formatValue(node.value)}`;
-    } else if (type === 'deleted') {
-      return `Property '${fullName}' was removed`;
-    } else if (type === 'updated') {
-      return `Property '${fullName}' was updated. From '${node.oldValue}' to '${node.newValue}'`;
-    }
-
-    return '';
-  });
-
-  return formatLines(lines);
+export const formatNested = (formatter, context) => {
+  const { node, parents } = context;
+  return [formatter(node.children, [...parents, node])];
 };
 
-export default formatPlain;
+export const formatAdded = (context) => {
+  const { node, parents } = context;
+  return [`Property '${getFullName(parents, node)}' was added with ${formatValue(node.value)}`];
+};
+
+export const formatDeleted = (context) => {
+  const { node, parents } = context;
+  return [`Property '${getFullName(parents, node)}' was removed`];
+};
+
+export const formatUnchanged = () => [''];
+
+export const formatUpdated = (context) => {
+  const { node, parents } = context;
+  return [`Property '${getFullName(parents, node)}' was updated. From '${node.oldValue}' to '${node.newValue}'`];
+};

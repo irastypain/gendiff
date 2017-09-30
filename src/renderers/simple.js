@@ -1,43 +1,49 @@
 import _ from 'lodash';
 
+export const out = preparedData => preparedData;
+
+export const getLevel = parents => parents.length;
+
+export const formatLines = (lines, levelIdent) => {
+  const ident = '    '.repeat(levelIdent);
+  return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
+};
+
+const formatValue = (rawValue, parents) => {
+  if (_.isObject(rawValue)) {
+    const lines = _.keys(rawValue).map(key => `    ${key}: ${rawValue[key]}`);
+    return formatLines(lines, getLevel(parents) + 1);
+  }
+  return `${rawValue}`;
+};
+
 const signs = {
   unchanged: ' ',
   added: '+',
   deleted: '-',
   nested: ' ',
-  updated: ' ',
 };
 
-const formatLines = (lines, levelIdent) => {
-  const ident = '    '.repeat(levelIdent);
-  return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
+const formatDefault = (context) => {
+  const { node, parents } = context;
+  return [`  ${signs[node.type]} ${node.key}: ${formatValue(node.value, parents)}`];
 };
 
-const formatValue = (rawValue, levelIdent) => {
-  if (_.isObject(rawValue)) {
-    const lines = _.keys(rawValue).map(key => `    ${key}: ${rawValue[key]}`);
-    return formatLines(lines, levelIdent + 1);
-  }
-  return `${rawValue}`;
+export const formatNested = (formatter, context) => {
+  const { node, parents } = context;
+  return [`  ${signs.nested} ${node.key}: ${formatter(node.children, [...parents, node])}`];
 };
 
-const formatDiff = (diff, level = 0) => {
-  const lines = diff.reduce((acc, node) => {
-    const { type, key } = node;
+export const formatAdded = formatDefault;
 
-    if (type === 'nested') {
-      return [...acc, `  ${signs[type]} ${key}: ${formatDiff(node.children, level + 1)}`];
-    } else if (type === 'updated') {
-      return [
-        ...acc,
-        `  ${signs.added} ${key}: ${node.newValue}`,
-        `  ${signs.deleted} ${key}: ${node.oldValue}`,
-      ];
-    }
-    return [...acc, `  ${signs[type]} ${key}: ${formatValue(node.value, level)}`];
-  }, []);
+export const formatDeleted = formatDefault;
 
-  return formatLines(lines, level);
+export const formatUnchanged = formatDefault;
+
+export const formatUpdated = (context) => {
+  const { node } = context;
+  return [
+    `  ${signs.added} ${node.key}: ${node.newValue}`,
+    `  ${signs.deleted} ${node.key}: ${node.oldValue}`,
+  ];
 };
-
-export default formatDiff;

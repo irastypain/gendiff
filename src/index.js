@@ -3,7 +3,7 @@ import _ from 'lodash';
 import path from 'path';
 import yaml from 'js-yaml';
 import ini from 'ini';
-import getRenderer from './renderers';
+import render from './renderers';
 
 const parse = (format, fileData) => {
   const parsers = {
@@ -52,9 +52,8 @@ const getDiff = (dataBefore, dataAfter) => {
   });
 };
 
-export default (pathToFirstFile, pathToSecondFile, format = 'simple') => {
+export default (pathToFirstFile, pathToSecondFile, formatType = 'simple') => {
   const dataBefore = getContent(pathToFirstFile);
   const dataAfter = getContent(pathToSecondFile);
-  const render = getRenderer(format);
-  return render(getDiff(dataBefore, dataAfter));
+  return render(getDiff(dataBefore, dataAfter), formatType);
 };
