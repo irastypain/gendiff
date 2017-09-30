@@ -11,7 +11,7 @@ export const formatLines = (lines) => {
 
 export const getLevel = parents => parents.length;
 
-export const formatValue = (rawValue, type) => {
+const formatValue = (rawValue, type) => {
   if (_.isObject(rawValue)) {
     return _.keys(rawValue).reduce((acc, key) => {
       const newAcc = { ...acc, [key]: { type, value: rawValue[key] } };
@@ -22,13 +22,13 @@ export const formatValue = (rawValue, type) => {
 };
 
 const formatDefault = (context) => {
-  const { node } = context;
-  return [{ [node.key]: { type: node.type, value: formatValue(node.value, node.type) } }];
+  const { type, key, value } = context;
+  return [{ [key]: { type, value: formatValue(value, type) } }];
 };
 
-export const formatNested = (formatter, context) => {
-  const { node, parents } = context;
-  return [{ [node.key]: { type: node.type, value: formatter(node.children, [...parents, node]) } }];
+export const formatNested = (context) => {
+  const { type, key, value } = context;
+  return [{ [key]: { type, value } }];
 };
 
 export const formatAdded = formatDefault;
@@ -38,6 +38,11 @@ export const formatDeleted = formatDefault;
 export const formatUnchanged = formatDefault;
 
 export const formatUpdated = (context) => {
-  const { node } = context;
-  return [{ [node.key]: { type: node.type, from: node.oldValue, to: node.newValue } }];
+  const {
+    type,
+    key,
+    oldValue,
+    newValue,
+  } = context;
+  return [{ [key]: { type, from: oldValue, to: newValue } }];
 };

@@ -9,10 +9,10 @@ export const formatLines = (lines, levelIdent) => {
   return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
 };
 
-const formatValue = (rawValue, parents) => {
+const formatValue = (rawValue, levelIdent) => {
   if (_.isObject(rawValue)) {
     const lines = _.keys(rawValue).map(key => `    ${key}: ${rawValue[key]}`);
-    return formatLines(lines, getLevel(parents) + 1);
+    return formatLines(lines, levelIdent + 1);
   }
   return `${rawValue}`;
 };
@@ -25,13 +25,18 @@ const signs = {
 };
 
 const formatDefault = (context) => {
-  const { node, parents } = context;
-  return [`  ${signs[node.type]} ${node.key}: ${formatValue(node.value, parents)}`];
+  const {
+    type,
+    key,
+    value,
+    parents,
+  } = context;
+  return [`  ${signs[type]} ${key}: ${formatValue(value, getLevel(parents))}`];
 };
 
-export const formatNested = (formatter, context) => {
-  const { node, parents } = context;
-  return [`  ${signs.nested} ${node.key}: ${formatter(node.children, [...parents, node])}`];
+export const formatNested = (context) => {
+  const { key, value } = context;
+  return [`  ${signs.nested} ${key}: ${value}`];
 };
 
 export const formatAdded = formatDefault;
@@ -41,9 +46,9 @@ export const formatDeleted = formatDefault;
 export const formatUnchanged = formatDefault;
 
 export const formatUpdated = (context) => {
-  const { node } = context;
+  const { key, newValue, oldValue } = context;
   return [
-    `  ${signs.added} ${node.key}: ${node.newValue}`,
-    `  ${signs.deleted} ${node.key}: ${node.oldValue}`,
+    `  ${signs.added} ${key}: ${newValue}`,
+    `  ${signs.deleted} ${key}: ${oldValue}`,
   ];
 };

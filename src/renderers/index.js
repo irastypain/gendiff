@@ -13,18 +13,19 @@ export default (ast, formatType) => {
   const format = (diff, parents = []) => {
     const func = (node) => {
       const { type } = node;
-      const context = { node, parents };
       switch (type) {
-        case 'nested':
-          return renderer.formatNested(format, context);
+        case 'nested': {
+          const value = format(node.children, [...parents, node]);
+          return renderer.formatNested({ ...node, parents, value });
+        }
         case 'added':
-          return renderer.formatAdded(context);
+          return renderer.formatAdded({ ...node, parents });
         case 'deleted':
-          return renderer.formatDeleted(context);
+          return renderer.formatDeleted({ ...node, parents });
         case 'updated':
-          return renderer.formatUpdated(context);
+          return renderer.formatUpdated({ ...node, parents });
         default:
-          return renderer.formatUnchanged(context);
+          return renderer.formatUnchanged({ ...node, parents });
       }
     };
 
