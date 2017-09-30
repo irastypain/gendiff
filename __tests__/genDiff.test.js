@@ -72,3 +72,45 @@ describe('compare two recursive files with format plain', () => {
     expect(genDiff(getPath('beforeRecursive', 'ini'), getPath('afterRecursive', 'ini'), 'plain')).toBe(expected);
   });
 });
+
+describe('compare two flat files with format json', () => {
+  let expected;
+  beforeAll(() => {
+    expected = (getExpected('diffFlat.json'));
+  });
+
+  test('.json', () => {
+    expect(genDiff(getPath('before', 'json'), getPath('after', 'json'), 'json')).toEqual(expected);
+  });
+  test('.yaml', () => {
+    expect(genDiff(getPath('before', 'yaml'), getPath('after', 'yaml'), 'json')).toEqual(expected);
+  });
+});
+
+describe('compare two flat .ini files with format json (special test)', () => {
+  let expected;
+  beforeAll(() => {
+    expected = (getExpected('diffFlatIni.json'));
+  });
+
+  test('.ini', () => {
+    expect(genDiff(getPath('before', 'ini'), getPath('after', 'ini'), 'json')).toEqual(expected);
+  });
+});
+
+describe('compare two recursive files with format json', () => {
+  let expected;
+  beforeAll(() => {
+    expected = (getExpected('diffRecursive.json'));
+  });
+
+  test('.json', () => {
+    expect(genDiff(getPath('beforeRecursive', 'json'), getPath('afterRecursive', 'json'), 'json')).toEqual(expected);
+  });
+  test('.yaml', () => {
+    expect(genDiff(getPath('beforeRecursive', 'yaml'), getPath('afterRecursive', 'yaml'), 'json')).toEqual(expected);
+  });
+  test('.ini', () => {
+    expect(genDiff(getPath('beforeRecursive', 'ini'), getPath('afterRecursive', 'ini'), 'json')).toEqual(expected);
+  });
+});

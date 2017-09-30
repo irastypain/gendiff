@@ -1,0 +1,1 @@
+{"host":{"type":"equal","value":"hexlet.io"},"timeout":{"type":"changed","from":50,"to":20},"proxy":{"type":"deleted","value":"123.234.53.22"},"verbose":{"type":"added","value":true}}
