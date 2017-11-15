@@ -38,11 +38,6 @@ export const formatDeleted = formatDefault;
 export const formatUnchanged = formatDefault;
 
 export const formatUpdated = (context) => {
-  const {
-    type,
-    key,
-    oldValue,
-    newValue,
-  } = context;
-  return [{ [key]: { type, from: oldValue, to: newValue } }];
+  const { type, key, value } = context;
+  return [{ [key]: { type, from: value.old, to: value.new } }];
 };

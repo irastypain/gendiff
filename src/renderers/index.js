@@ -15,7 +15,7 @@ export default (ast, formatType) => {
       const { type } = node;
       switch (type) {
         case 'nested': {
-          const value = format(node.children, [...parents, node]);
+          const value = format(node.value, [...parents, node]);
           return renderer.formatNested({ ...node, parents, value });
         }
         case 'added':

@@ -34,11 +34,6 @@ export const formatUnchanged = (context) => {
 };
 
 export const formatUpdated = (context) => {
-  const {
-    key,
-    oldValue,
-    newValue,
-    parents,
-  } = context;
-  return [`Property '${getFullName(parents, key)}' was updated. From '${oldValue}' to '${newValue}'`];
+  const { key, value, parents } = context;
+  return [`Property '${getFullName(parents, key)}' was updated. From '${value.old}' to '${value.new}'`];
 };

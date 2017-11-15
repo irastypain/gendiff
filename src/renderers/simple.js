@@ -46,9 +46,9 @@ export const formatDeleted = formatDefault;
 export const formatUnchanged = formatDefault;
 
 export const formatUpdated = (context) => {
-  const { key, newValue, oldValue } = context;
+  const { key, value } = context;
   return [
-    `  ${signs.added} ${key}: ${newValue}`,
-    `  ${signs.deleted} ${key}: ${oldValue}`,
+    `  ${signs.added} ${key}: ${value.new}`,
+    `  ${signs.deleted} ${key}: ${value.old}`,
   ];
 };
