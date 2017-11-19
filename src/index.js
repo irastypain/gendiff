@@ -5,30 +5,6 @@ import yaml from 'js-yaml';
 import ini from 'ini';
 import render from './renderers';
 
-const parse = (format, fileData) => {
-  const parsers = {
-    json: JSON.parse,
-    yaml: yaml.load,
-    ini: ini.parse,
-  };
-  return parsers[format](fileData);
-};
-
-const getFormat = (filePath) => {
-  const ext = path.extname(filePath).replace('.', '');
-  if (ext === 'yml') {
-    return 'yaml';
-  }
-  return ext;
-};
-
-const getData = (pathToFile) => {
-  const encoding = 'utf-8';
-  const fileData = fs.readFileSync(pathToFile, encoding);
-  const format = getFormat(pathToFile);
-  return parse(format, fileData);
-};
-
 const types = [
   {
     type: 'nested',
@@ -57,6 +33,30 @@ const types = [
     process: first => _.identity(first),
   },
 ];
+
+const parse = (format, fileData) => {
+  const parsers = {
+    json: JSON.parse,
+    yaml: yaml.load,
+    ini: ini.parse,
+  };
+  return parsers[format](fileData);
+};
+
+const getFormat = (filePath) => {
+  const ext = path.extname(filePath).replace('.', '');
+  if (ext === 'yml') {
+    return 'yaml';
+  }
+  return ext;
+};
+
+const getData = (pathToFile) => {
+  const encoding = 'utf-8';
+  const format = getFormat(pathToFile);
+  const fileData = fs.readFileSync(pathToFile, encoding);
+  return parse(format, fileData);
+};
 
 const getAst = (dataBefore = {}, dataAfter = {}) => {
   const dataBeforeKeys = Object.keys(dataBefore);
