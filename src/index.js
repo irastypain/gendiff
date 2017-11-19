@@ -22,7 +22,7 @@ const getFormat = (filePath) => {
   return ext;
 };
 
-const getContent = (pathToFile) => {
+const getData = (pathToFile) => {
   const encoding = 'utf-8';
   const fileData = fs.readFileSync(pathToFile, encoding);
   const format = getFormat(pathToFile);
@@ -69,8 +69,7 @@ const getAst = (dataBefore = {}, dataAfter = {}) => {
   });
 };
 
-export default (pathToFirstFile, pathToSecondFile, formatType = 'simple') => {
-  const dataBefore = getContent(pathToFirstFile);
-  const dataAfter = getContent(pathToSecondFile);
-  return render(getAst(dataBefore, dataAfter), formatType);
+export default (path1, path2, formatType = 'simple') => {
+  const ast = getAst(getData(path1), getData(path2));
+  return render(ast, formatType);
 };

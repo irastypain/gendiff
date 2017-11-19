@@ -37,3 +37,30 @@ export const formatUpdated = (context) => {
   const { key, value, parents } = context;
   return [`Property '${getFullName(parents, key)}' was updated. From '${value.old}' to '${value.new}'`];
 };
+
+export default (ast) => {
+  const format = (diff, parents = []) => {
+    const func = (node) => {
+      const { type } = node;
+      switch (type) {
+        case 'nested': {
+          const value = format(node.value, [...parents, node]);
+          return formatNested({ ...node, parents, value });
+        }
+        case 'added':
+          return formatAdded({ ...node, parents });
+        case 'deleted':
+          return formatDeleted({ ...node, parents });
+        case 'updated':
+          return formatUpdated({ ...node, parents });
+        default:
+          return formatUnchanged({ ...node, parents });
+      }
+    };
+
+    const lines = diff.reduce((acc, node) => [...acc, ...func(node)], []);
+    return formatLines(lines, getLevel(parents));
+  };
+
+  return out(format(ast));
+};

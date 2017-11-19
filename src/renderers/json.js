@@ -1,15 +1,15 @@
 import _ from 'lodash';
 
-export const out = preparedData => JSON.stringify(preparedData);
+const out = preparedData => JSON.stringify(preparedData);
 
-export const formatLines = (lines) => {
+const formatLines = (lines) => {
   const objects = lines;
   const keys = _.flatten(objects.map(obj => _.keys(obj)));
   const values = _.flatten(objects.map(obj => _.values(obj)));
   return _.zipObject(keys, values);
 };
 
-export const getLevel = parents => parents.length;
+const getLevel = parents => parents.length;
 
 const formatValue = (rawValue, type) => {
   if (_.isObject(rawValue)) {
@@ -26,18 +26,45 @@ const formatDefault = (context) => {
   return [{ [key]: { type, value: formatValue(value, type) } }];
 };
 
-export const formatNested = (context) => {
+const formatNested = (context) => {
   const { type, key, value } = context;
   return [{ [key]: { type, value } }];
 };
 
-export const formatAdded = formatDefault;
+const formatAdded = formatDefault;
 
-export const formatDeleted = formatDefault;
+const formatDeleted = formatDefault;
 
-export const formatUnchanged = formatDefault;
+const formatUnchanged = formatDefault;
 
-export const formatUpdated = (context) => {
+const formatUpdated = (context) => {
   const { type, key, value } = context;
   return [{ [key]: { type, from: value.old, to: value.new } }];
+};
+
+export default (ast) => {
+  const format = (diff, parents = []) => {
+    const func = (node) => {
+      const { type } = node;
+      switch (type) {
+        case 'nested': {
+          const value = format(node.value, [...parents, node]);
+          return formatNested({ ...node, parents, value });
+        }
+        case 'added':
+          return formatAdded({ ...node, parents });
+        case 'deleted':
+          return formatDeleted({ ...node, parents });
+        case 'updated':
+          return formatUpdated({ ...node, parents });
+        default:
+          return formatUnchanged({ ...node, parents });
+      }
+    };
+
+    const lines = diff.reduce((acc, node) => [...acc, ...func(node)], []);
+    return formatLines(lines, getLevel(parents));
+  };
+
+  return out(format(ast));
 };

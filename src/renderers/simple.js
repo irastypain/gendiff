@@ -1,10 +1,10 @@
 import _ from 'lodash';
 
-export const out = preparedData => preparedData;
+const out = preparedData => preparedData;
 
-export const getLevel = parents => parents.length;
+const getLevel = parents => parents.length;
 
-export const formatLines = (lines, levelIdent) => {
+const formatLines = (lines, levelIdent) => {
   const ident = '    '.repeat(levelIdent);
   return `{\n${ident}${lines.join(`\n${ident}`)}\n${ident}}`;
 };
@@ -34,21 +34,48 @@ const formatDefault = (context) => {
   return [`  ${signs[type]} ${key}: ${formatValue(value, getLevel(parents))}`];
 };
 
-export const formatNested = (context) => {
+const formatNested = (context) => {
   const { key, value } = context;
   return [`  ${signs.nested} ${key}: ${value}`];
 };
 
-export const formatAdded = formatDefault;
+const formatAdded = formatDefault;
 
-export const formatDeleted = formatDefault;
+const formatDeleted = formatDefault;
 
-export const formatUnchanged = formatDefault;
+const formatUnchanged = formatDefault;
 
-export const formatUpdated = (context) => {
+const formatUpdated = (context) => {
   const { key, value } = context;
   return [
     `  ${signs.added} ${key}: ${value.new}`,
     `  ${signs.deleted} ${key}: ${value.old}`,
   ];
+};
+
+export default (ast) => {
+  const format = (diff, parents = []) => {
+    const func = (node) => {
+      const { type } = node;
+      switch (type) {
+        case 'nested': {
+          const value = format(node.value, [...parents, node]);
+          return formatNested({ ...node, parents, value });
+        }
+        case 'added':
+          return formatAdded({ ...node, parents });
+        case 'deleted':
+          return formatDeleted({ ...node, parents });
+        case 'updated':
+          return formatUpdated({ ...node, parents });
+        default:
+          return formatUnchanged({ ...node, parents });
+      }
+    };
+
+    const lines = diff.reduce((acc, node) => [...acc, ...func(node)], []);
+    return formatLines(lines, getLevel(parents));
+  };
+
+  return out(format(ast));
 };
