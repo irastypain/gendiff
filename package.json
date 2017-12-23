@@ -1,7 +1,7 @@
 {
   "name": "gendiff-irastypain",
-  "version": "0.7.4",
-  "description": "This package is implementation of second project at Hexlet",
+  "version": "0.8.0",
+  "description": "Compares two configuration files and shows a difference.",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/irastypain/project-lvl2-s125.git"
+    "url": "git+https://github.com/irastypain/gendiff.git"
   },
   "keywords": [
     "gendiff",
@@ -22,9 +22,9 @@
   "author": "Ivan Rastyapin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/irastypain/project-lvl2-s125/issues"
+    "url": "https://github.com/irastypain/gendiff/issues"
   },
-  "homepage": "https://github.com/irastypain/project-lvl2-s125#readme",
+  "homepage": "https://github.com/irastypain/gendiff#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
